@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMPERIUM — Dünya Hâkimiyeti</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#06080a;--surface:#0c0f13;--surface2:#111620;--border:#1e2530;--border2:#2a3545;
+  --gold:#c9a84c;--gold2:#e8c96d;--gold3:#f0d898;
+  --text:#c8cdd8;--text2:#8a94a8;--text3:#4a5468;
+  --red:#8b2020;--red2:#c0392b;--red3:#e74c3c;
+  --blue:#1a3a5c;--blue2:#2471a3;--blue3:#5dade2;
+  --green:#1a3a20;--green2:#1e8449;--green3:#2ecc71;
+  --amber:#5a3a10;--amber2:#b7770d;--amber3:#f0a500;
+  --purple:#3a1a5c;--purple2:#7d3c98;--purple3:#af7ac5;
+  --teal:#0a3a3a;--teal2:#117a65;--teal3:#1abc9c;
+  --shadow:rgba(0,0,0,0.7);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+body{display:flex;flex-direction:column;font-family:'IM Fell English',serif;color:var(--text);}
+
+/* SCREENS */
+#screen-menu,#screen-create,#screen-game{position:absolute;inset:0;transition:opacity 0.4s;}
+#screen-menu{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,#0e1520 0%,#06080a 70%);}
+#screen-create{display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,#0e1520 0%,#06080a 70%);}
+#screen-game{display:none;flex-direction:column;}
+
+/* MENU */
+.menu-title{font-family:'Cinzel Decorative',cursive;font-size:52px;font-weight:900;
+  color:var(--gold);letter-spacing:6px;text-shadow:0 0 40px rgba(201,168,76,0.4);margin-bottom:8px;}
+.menu-sub{font-family:'Cinzel',serif;font-size:14px;letter-spacing:8px;color:var(--text2);margin-bottom:60px;}
+.menu-btn{background:transparent;border:1px solid var(--border2);color:var(--text);
+  padding:14px 48px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;
+  cursor:pointer;transition:all 0.2s;margin:6px;text-transform:uppercase;}
+.menu-btn:hover{border-color:var(--gold);color:var(--gold3);background:rgba(201,168,76,0.05);}
+.menu-btn.primary{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,0.08);}
+.menu-btn.primary:hover{background:rgba(201,168,76,0.15);}
+.menu-divider{width:300px;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:20px 0;}
+.menu-desc{font-size:13px;color:var(--text3);font-style:italic;margin-top:30px;text-align:center;max-width:500px;line-height:1.8;}
+
+/* NATION CREATOR */
+.create-panel{background:var(--surface);border:1px solid var(--border2);padding:40px;max-width:700px;width:90%;}
+.create-title{font-family:'Cinzel',serif;font-size:22px;color:var(--gold);letter-spacing:3px;margin-bottom:30px;text-align:center;}
+.form-row{display:flex;gap:16px;margin-bottom:16px;}
+.form-group{flex:1;display:flex;flex-direction:column;gap:6px;}
+.form-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;}
+.form-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:10px 14px;font-family:'IM Fell English',serif;font-size:14px;outline:none;}
+.form-input:focus{border-color:var(--gold);}
+.form-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:10px 14px;font-family:'Cinzel',serif;font-size:12px;outline:none;cursor:pointer;}
+.color-picker-row{display:flex;gap:8px;flex-wrap:wrap;}
+.color-swatch{width:32px;height:32px;border:2px solid transparent;cursor:pointer;transition:all 0.15s;}
+.color-swatch:hover,.color-swatch.selected{border-color:#fff;transform:scale(1.1);}
+.nation-preview{margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);text-align:center;}
+.preview-flag{width:80px;height:50px;display:inline-block;margin-bottom:8px;}
+.preview-name{font-family:'Cinzel',serif;font-size:18px;}
+.trait-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.trait-card{background:var(--surface2);border:1px solid var(--border);padding:10px;cursor:pointer;transition:all 0.15s;}
+.trait-card:hover,.trait-card.selected{border-color:var(--gold);background:rgba(201,168,76,0.05);}
+.trait-card .t-name{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);letter-spacing:1px;}
+.trait-card .t-desc{font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;}
+
+/* GAME LAYOUT */
+#game-header{height:44px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:20px;flex-shrink:0;}
+.h-nation{font-family:'Cinzel',serif;font-size:13px;font-weight:700;}
+.h-stat{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);}
+.h-stat .val{color:var(--text);font-family:'Cinzel',serif;font-size:12px;}
+.h-stat .icon{font-size:13px;}
+.h-sep{width:1px;height:20px;background:var(--border);}
+#h-turn{font-family:'Cinzel',serif;font-size:11px;color:var(--text3);margin-left:auto;}
+#end-turn-btn{margin-left:8px;background:rgba(201,168,76,0.1);border:1px solid var(--gold);
+  color:var(--gold);padding:6px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;cursor:pointer;}
+#end-turn-btn:hover{background:rgba(201,168,76,0.2);}
+
+#game-body{flex:1;display:flex;overflow:hidden;}
+
+/* MAP */
+#map-wrap{flex:1;position:relative;overflow:hidden;cursor:default;}
+#map-canvas{position:absolute;top:0;left:0;}
+#ui-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+
+/* LEFT PANEL */
+#left-panel{width:220px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.panel-section{padding:10px 12px;border-bottom:1px solid var(--border);}
+.panel-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2.5px;color:var(--gold);
+  text-transform:uppercase;margin-bottom:8px;}
+
+/* NATIONS LIST */
+.nation-row{display:flex;align-items:center;gap:7px;padding:5px 4px;border-radius:2px;
+  cursor:pointer;transition:background 0.1s;}
+.nation-row:hover{background:var(--surface2);}
+.nation-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.nation-info{flex:1;min-width:0;}
+.nation-info .nname{font-size:11px;font-family:'Cinzel',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nation-info .nstats{font-size:10px;color:var(--text3);}
+.nation-rel{font-size:10px;padding:2px 5px;}
+
+/* RIGHT PANEL */
+#right-panel{width:240px;background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.action-btn{display:block;width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:8px 12px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;
+  cursor:pointer;text-align:left;text-transform:uppercase;transition:all 0.15s;margin-bottom:4px;}
+.action-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.action-btn.active{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,0.07);}
+.action-btn.danger{border-color:var(--red2);}
+.action-btn.danger:hover{color:var(--red3);}
+.cost-tag{float:right;color:var(--text3);font-size:9px;}
+
+/* SELECTED INFO */
+#sel-panel{padding:10px 12px;border-bottom:1px solid var(--border);}
+#sel-title{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);margin-bottom:6px;}
+#sel-body{font-size:11px;color:var(--text2);line-height:1.7;}
+.stat-bar{height:4px;background:var(--border);margin:3px 0 6px;}
+.stat-bar-fill{height:100%;transition:width 0.3s;}
+
+/* LOG */
+#log-area{flex:1;overflow-y:auto;padding:8px 12px;}
+.log-entry{font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);line-height:1.5;color:var(--text2);}
+.log-entry.war{color:var(--red3);}
+.log-entry.peace{color:var(--green3);}
+.log-entry.economy{color:var(--amber3);}
+.log-entry.system{color:var(--gold);}
+.log-entry.event{color:var(--purple3);}
+.log-year{font-family:'Cinzel',serif;font-size:9px;color:var(--text3);}
+
+/* BOTTOM BAR */
+#game-footer{height:28px;background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:16px;flex-shrink:0;}
+#hint{font-size:11px;color:var(--text3);font-style:italic;}
+#minimap-canvas{position:absolute;bottom:40px;right:244px;width:140px;height:90px;
+  border:1px solid var(--border2);background:var(--surface);}
+
+/* TOOLTIP */
+#tooltip{position:absolute;background:rgba(6,8,10,0.96);border:1px solid var(--border2);
+  padding:10px 14px;font-size:11px;pointer-events:none;z-index:50;max-width:200px;line-height:1.8;display:none;}
+#tooltip strong{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);}
+
+/* MODAL */
+#modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.75);display:none;
+  align-items:center;justify-content:center;z-index:100;}
+#modal{background:var(--surface);border:1px solid var(--border2);padding:32px;max-width:480px;width:90%;}
+#modal h2{font-family:'Cinzel',serif;color:var(--gold);font-size:20px;margin-bottom:16px;letter-spacing:2px;}
+#modal p{font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:16px;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;}
+.modal-btns button{background:transparent;border:1px solid var(--border2);color:var(--text);
+  padding:8px 20px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;cursor:pointer;}
+.modal-btns button.primary{border-color:var(--gold);color:var(--gold);}
+.modal-btns button:hover{background:var(--surface2);}
+
+/* GAME OVER */
+#gameover{position:absolute;inset:0;background:rgba(0,0,0,0.9);display:none;
+  align-items:center;justify-content:center;flex-direction:column;z-index:200;}
+#gameover h1{font-family:'Cinzel Decorative',cursive;font-size:48px;color:var(--gold);letter-spacing:6px;margin-bottom:16px;}
+#gameover p{font-size:16px;color:var(--text2);margin-bottom:32px;font-style:italic;}
+
+/* TECH TREE */
+.tech-item{display:flex;align-items:center;gap:8px;padding:6px;border:1px solid var(--border);
+  margin-bottom:4px;cursor:pointer;transition:all 0.15s;}
+.tech-item:hover{border-color:var(--gold);}
+.tech-item.researched{border-color:var(--green3);opacity:0.6;}
+.tech-item .tname{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);}
+.tech-item .tdesc{font-size:10px;color:var(--text3);}
+.tech-item .tcost{font-size:10px;color:var(--amber3);margin-left:auto;}
+
+scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+#log-area::-webkit-scrollbar{width:4px;}
+#log-area::-webkit-scrollbar-thumb{background:var(--border2);}
+</style>
+</head>
+<body>
+
+<!-- MAIN MENU -->
+<div id="screen-menu">
+  <div class="menu-title">IMPERIUM</div>
+  <div class="menu-sub">Dünya Hâkimiyeti</div>
+  <div class="menu-divider"></div>
+  <button class="menu-btn primary" onclick="showCreate()">⚔ YENİ İMPARATORLUK KUR</button>
+  <button class="menu-btn" onclick="quickStart()">▶ HIZLI BAŞLA</button>
+  <div class="menu-desc">
+    Kendi devletini kur, toprak fethederek büyü, diplomasi yürüt, düşmanlarını yen.<br>
+    40+ devlet, gerçekçi harita, ekonomi & teknoloji sistemi.
+  </div>
+</div>
+
+<!-- NATION CREATOR -->
+<div id="screen-create">
+  <div class="create-panel">
+    <div class="create-title">İMPARATORLUĞUNU KUR</div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Devlet Adı</div>
+        <input class="form-input" id="nc-name" placeholder="Ör: Büyük Osmanlı" maxlength="24">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Hükümdar Unvanı</div>
+        <select class="form-select" id="nc-title">
+          <option>Sultan</option><option>İmparator</option><option>Kral</option>
+          <option>Kağan</option><option>Çar</option><option>Şah</option><option>Cumhurbaşkanı</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Başlangıç Bölgesi</div>
+        <select class="form-select" id="nc-region">
+          <option value="0">Anadolu (Merkez)</option>
+          <option value="1">Balkanlar (Batı)</option>
+          <option value="2">Orta Asya (Doğu)</option>
+          <option value="3">Kuzey Afrika (Güney)</option>
+          <option value="4">Doğu Avrupa (Kuzey)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Hükümet Tipi</div>
+        <select class="form-select" id="nc-gov">
+          <option value="monarchy">Monarşi (+%20 ordu)</option>
+          <option value="republic">Cumhuriyet (+%20 ticaret)</option>
+          <option value="theocracy">Teokrasi (+%20 sadakat)</option>
+          <option value="tribal">Kabile (+%30 genişleme)</option>
+          <option value="empire">İmparatorluk (+%15 her şey)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <div class="form-label">Devlet Rengi</div>
+      <div class="color-picker-row" id="color-picker">
+        <div class="color-swatch selected" data-color="#c9a84c" style="background:#c9a84c"></div>
+        <div class="color-swatch" data-color="#e74c3c" style="background:#e74c3c"></div>
+        <div class="color-swatch" data-color="#2980b9" style="background:#2980b9"></div>
+        <div class="color-swatch" data-color="#27ae60" style="background:#27ae60"></div>
+        <div class="color-swatch" data-color="#9b59b6" style="background:#9b59b6"></div>
+        <div class="color-swatch" data-color="#1abc9c" style="background:#1abc9c"></div>
+        <div class="color-swatch" data-color="#e67e22" style="background:#e67e22"></div>
+        <div class="color-swatch" data-color="#e91e63" style="background:#e91e63"></div>
+        <div class="color-swatch" data-color="#00bcd4" style="background:#00bcd4"></div>
+        <div class="color-swatch" data-color="#ff5722" style="background:#ff5722"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Ulusal Özellik (1 seç)</div>
+      <div class="trait-grid" id="trait-grid">
+        <div class="trait-card selected" data-trait="military"><div class="t-name">⚔ Savaşçı Ulus</div><div class="t-desc">Ordu gücü +25%, savaş geliri +10%</div></div>
+        <div class="trait-card" data-trait="trader"><div class="t-name">⚖ Tüccar Ulus</div><div class="t-desc">Altın geliri +30%, diplomatik bonus</div></div>
+        <div class="trait-card" data-trait="scholar"><div class="t-name">📜 Alim Ulus</div><div class="t-desc">Araştırma hızı +40%, teknoloji bonusu</div></div>
+        <div class="trait-card" data-trait="expansionist"><div class="t-name">🌍 Fatihin Nesli</div><div class="t-desc">Toprak fethi +50%, yeni eyalet bonusu</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;justify-content:flex-end;">
+      <button class="menu-btn" onclick="showMenu()">← GERİ</button>
+      <button class="menu-btn primary" onclick="startGame()">İMPARATORLUĞU KURULUYOR →</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game">
+  <div id="game-header">
+    <div class="h-nation" id="h-nation-name" style="color:#c9a84c">—</div>
+    <div class="h-sep"></div>
+    <div class="h-stat"><span class="icon">🪙</span><span class="val" id="h-gold">0</span></div>
+    <div class="h-stat"><span class="icon">⚔</span><span class="val" id="h-mil">0</span></div>
+    <div class="h-stat"><span class="icon">🌾</span><span class="val" id="h-food">0</span></div>
+    <div class="h-stat"><span class="icon">📜</span><span class="val" id="h-research">0</span></div>
+    <div class="h-stat"><span class="icon">😊</span><span class="val" id="h-stab">100%</span></div>
+    <div class="h-stat"><span class="icon">🗺</span><span class="val" id="h-provinces">0</span> eyalet</div>
+    <div class="h-sep"></div>
+    <div class="h-stat" id="h-era-tag">Klasik Çağ</div>
+    <div id="h-turn">Yıl: <span id="h-year">800</span> — Tur: <span id="h-turnnum">1</span></div>
+    <button id="end-turn-btn" onclick="endTurn()">TUR BİTİR ▶</button>
+  </div>
+
+  <div id="game-body">
+    <!-- LEFT -->
+    <div id="left-panel">
+      <div class="panel-section">
+        <div class="panel-title">Dünya Devletleri</div>
+        <div id="nations-list"></div>
+      </div>
+      <div class="panel-section" style="flex:1;overflow-y:auto;">
+        <div class="panel-title">Teknolojiler</div>
+        <div id="tech-list"></div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="map-wrap">
+      <canvas id="map-canvas"></canvas>
+      <canvas id="ui-canvas"></canvas>
+      <canvas id="minimap-canvas"></canvas>
+      <div id="tooltip"></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div id="right-panel">
+      <div id="sel-panel">
+        <div id="sel-title">Haritaya tıklayın</div>
+        <div id="sel-body" style="color:var(--text3);font-style:italic;">Eyalet veya birlik seçin</div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-title">Eylemler</div>
+        <div id="action-btns"></div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-title">Savaş Günlüğü</div>
+        <div id="log-area"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-footer">
+    <span id="hint">Haritaya tıklayarak eyalet seçin</span>
+    <span style="margin-left:auto;font-family:'Cinzel',serif;font-size:10px;color:var(--text3)" id="footer-mode">SEÇİM MODU</span>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h2 id="modal-title">Başlık</h2>
+    <p id="modal-body">İçerik</p>
+    <div class="modal-btns" id="modal-btns"></div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover">
+  <h1 id="go-title">ZAFER!</h1>
+  <p id="go-msg">Dünya sizin ayağınızda!</p>
+  <button class="menu-btn primary" onclick="location.reload()">YENİDEN BAŞLA</button>
+</div>
+
+<script>
+// ====================================================
+//  IMPERIUM — Core Engine
+// ====================================================
+const MC = document.getElementById('map-canvas');
+const UC = document.getElementById('ui-canvas');
+const mctx = MC.getContext('2d');
+const uctx = UC.getContext('2d');
+const mmC = document.getElementById('minimap-canvas');
+const mmctx = mmC.getContext('2d');
+let W=0,H=0;
+
+// ---- WORLD GENERATION CONSTANTS ----
+const MAP_W = 160, MAP_H = 100; // province grid
+const PROV_W_PX = () => W / MAP_W;
+const PROV_H_PX = () => H / MAP_H;
+
+// ---- TERRAIN ----
+const TERRAIN_DEF = {
+  ocean:    { color:'#0a1a2e', dark:'#060f1c', income:0, food:0, move:99, fort:0, name:'Okyanus' },
+  coast:    { color:'#0e2540', dark:'#081628', income:2, food:3, move:1, fort:1, name:'Kıyı' },
+  plain:    { color:'#2a4a1a', dark:'#1c3210', income:4, food:5, move:1, fort:2, name:'Ova' },
+  forest:   { color:'#1a3a14', dark:'#102810', income:2, food:4, move:2, fort:3, name:'Orman' },
+  mountain: { color:'#3d3832', dark:'#28241e', income:3, food:1, move:3, fort:5, name:'Dağ' },
+  desert:   { color:'#4a3c18', dark:'#322810', income:1, food:0, move:2, fort:1, name:'Çöl' },
+  steppe:   { color:'#3a4a18', dark:'#283210', income:2, food:3, move:1, fort:0, name:'Bozkır' },
+  tundra:   { color:'#2a3040', dark:'#1e2230', income:1, food:1, move:2, fort:1, name:'Tundra' },
+  river:    { color:'#1a3a4a', dark:'#0e2832', income:5, food:6, move:1, fort:2, name:'Nehir Vadisi' },
+};
+
+// ---- TECHNOLOGIES ----
+const TECHS = [
+  {id:'iron',name:'Demir Silahlar',desc:'+20% saldırı',cost:80,researched:false,requires:[]},
+  {id:'cavalry',name:'Süvari',desc:'+1 hareket, +15% saldırı',cost:120,researched:false,requires:['iron']},
+  {id:'siege',name:'Kuşatma',desc:'Kaleleri 2x hızlı al',cost:150,researched:false,requires:['iron']},
+  {id:'trade',name:'Ticaret Yolları',desc:'+30% altın geliri',cost:100,researched:false,requires:[]},
+  {id:'agriculture',name:'Tarım',desc:'+40% yiyecek üretimi',cost:90,researched:false,requires:[]},
+  {id:'navigation',name:'Denizcilik',desc:'Deniz geçişi açılır',cost:130,researched:false,requires:['trade']},
+  {id:'fortification',name:'Kale Mimarisi',desc:'+50% savunma bonusu',cost:110,researched:false,requires:[]},
+  {id:'diplomacy',name:'Diplomasi',desc:'+2 ilişki/tur tüm devletlerle',cost:80,researched:false,requires:[]},
+  {id:'taxation',name:'Vergi Sistemi',desc:'+25% tüm gelirler',cost:140,researched:false,requires:['trade']},
+  {id:'gunpowder',name:'Barut',desc:'+40% saldırı, kale bonusu',cost:200,researched:false,requires:['iron','siege']},
+];
+
+// ---- RANDOM EVENTS ----
+const EVENTS = [
+  {id:'plague',title:'Veba Salgını',desc:'Eyaletlerinizden birinde veba çıktı! Nüfus azalıyor.',effect:'plague'},
+  {id:'gold_mine',title:'Altın Madeni',desc:'Sınırlarınız içinde altın madeni bulundu!',effect:'gold_bonus'},
+  {id:'rebellion',title:'İsyan',desc:'Bir eyalette isyan çıktı! Ordu gönderilmeli.',effect:'rebellion'},
+  {id:'harvest',title:'Bol Hasat',desc:'Bu yıl tarım çok verimli geçti.',effect:'food_bonus'},
+  {id:'mercenary',title:'Paralı Asker Teklifi',desc:'Komşu bir devlet sizden paralı asker istiyor.',effect:'gold_income'},
+  {id:'alliance_offer',title:'İttifak Teklifi',desc:'Komşu bir devlet ittifak kurmak istiyor.',effect:'alliance'},
+  {id:'great_general',title:'Büyük Komutan',desc:'Ordudan yetenekli bir komutan yetişti!',effect:'general'},
+  {id:'famine',title:'Kıtlık',desc:'Gıda sıkıntısı baş gösteriyor!',effect:'food_penalty'},
+];
+
+// ---- NATION TEMPLATES (AI) ----
+const AI_NATIONS = [
+  {name:'Bizans İmparatorluğu',color:'#8e44ad',gov:'empire',trait:'military',start:{x:48,y:30}},
+  {name:'Franklar',color:'#2980b9',gov:'monarchy',trait:'military',start:{x:22,y:22}},
+  {name:'Abbasiler',color:'#e67e22',gov:'theocracy',trait:'trader',start:{x:72,y:40}},
+  {name:'Moğol Hanlığı',color:'#e74c3c',gov:'tribal',trait:'expansionist',start:{x:110,y:28}},
+  {name:'Çin Hanedanı',color:'#c0392b',gov:'empire',trait:'scholar',start:{x:130,y:38}},
+  {name:'Hint Krallığı',color:'#f39c12',gov:'monarchy',trait:'trader',start:{x:100,y:52}},
+  {name:'Rus Prensliği',color:'#1abc9c',gov:'monarchy',trait:'expansionist',start:{x:60,y:18}},
+  {name:'İskandinav Krallığı',color:'#5dade2',gov:'tribal',trait:'military',start:{x:32,y:12}},
+  {name:'Mağripler',color:'#27ae60',gov:'theocracy',trait:'trader',start:{x:28,y:52}},
+  {name:'Habeşistan',color:'#d35400',gov:'theocracy',trait:'trader',start:{x:62,y:62}},
+  {name:'Güney Slavlar',color:'#7f8c8d',gov:'monarchy',trait:'military',start:{x:44,y:24}},
+  {name:'Polonya Krallığı',color:'#e91e63',gov:'monarchy',trait:'expansionist',start:{x:42,y:16}},
+  {name:'Macaristan',color:'#ff5722',gov:'monarchy',trait:'military',start:{x:42,y:22}},
+  {name:'Selçuklular',color:'#00bcd4',gov:'monarchy',trait:'expansionist',start:{x:78,y:32}},
+  {name:'Venedik',color:'#f06292',gov:'republic',trait:'trader',start:{x:36,y:26}},
+];
+
+// ---- STATE ----
+let provinces = [];
+let nations = [];
+let playerNation = null;
+let selectedProv = null;
+let selectedUnit = null;
+let cameraX = 0, cameraY = 0;
+let cameraZ = 1.0;
+let dragging = false, dragStart = {x:0,y:0}, camStart = {x:0,y:0};
+let turnNum = 1, year = 800;
+let currentMode = 'select'; // select, move, attack, build
+let animQueue = [];
+let gameStarted = false;
+let playerConfig = { name:'Osmanlı İmparatorluğu', color:'#c9a84c', gov:'monarchy', trait:'military', title:'Sultan', region:0 };
+
+// ---- NOISE (for terrain generation) ----
+function noise(x,y,seed=0){
+  let n=Math.sin(x*127.1+y*311.7+seed*432.1)*43758.5453;
+  return n-(Math.floor(n));
+}
+function smoothNoise(x,y,seed=0){
+  let s=0,a=1,f=1,max=0;
+  for(let o=0;o<6;o++){s+=noise(x*f,y*f,seed)*a;max+=a;a*=0.5;f*=2;}
+  return s/max;
+}
+
+// ---- WORLD GENERATION ----
+function generateWorld(){
+  provinces=[];
+  const W=MAP_W,H=MAP_H;
+  const elevation=[];
+  const moisture=[];
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    elevation.push(smoothNoise(x/40,y/40,1));
+    moisture.push(smoothNoise(x/30,y/30,2));
+  }
+  const idx=(x,y)=>y*W+x;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const e=elevation[idx(x,y)];
+    const m=moisture[idx(x,y)];
+    // Ocean borders
+    const edgeDist=Math.min(x,y,W-1-x,H-1-y)/15;
+    const adjE=e*Math.min(1,edgeDist+0.3);
+    let terrain;
+    if(adjE<0.30) terrain='ocean';
+    else if(adjE<0.36) terrain='coast';
+    else if(adjE>0.72) terrain='mountain';
+    else if(y>H*0.55 && m<0.35) terrain='desert';
+    else if(y<H*0.25 && adjE>0.4) terrain='tundra';
+    else if(m>0.62) terrain='forest';
+    else if(m>0.5 && adjE>0.45) terrain='river';
+    else if(adjE>0.4 && m<0.45) terrain='steppe';
+    else terrain='plain';
+    const td=TERRAIN_DEF[terrain];
+    provinces.push({
+      x,y,terrain,
+      owner:-1, // -1=neutral
+      name:generateProvName(x,y,terrain),
+      population: terrain==='ocean'?0: Math.floor(Math.random()*500+100),
+      development: terrain==='ocean'?0: Math.floor(Math.random()*3+1),
+      fort: terrain==='ocean'?0: (terrain==='mountain'?2:1),
+      maxFort: terrain==='ocean'?0: (terrain==='mountain'?4:3),
+      stability:100,
+      food:td.food,
+      baseIncome:td.income,
+      unit:null,
+      rebellion:false,
+      fortBuilt:false,
+    });
+  }
+}
+
+const PROV_NAMES_PREFIXES=['Al','An','Ar','As','Az','Ba','Be','Bi','Bo','Bu','Ca','Ce','Co','Da','De','Di','Do','Du','El','Em','En','Er','Es','Et','Ez','Fa','Fe','Fi','Fo','Ga','Ge','Gi','Go','Gu','Ha','He','Hi','Ho','Hu','Ib','Id','Il','Im','In','Ir','Is','It','Iv','Iz'];
+const PROV_NAMES_SUFFIXES=['abad','abad','ara','burg','dor','dur','ela','esia','estan','grad','ham','ia','ika','istan','ium','iya','kand','khan','land','leia','nabad','nor','polis','por','pur','rum','shan','shire','ston','tabad','thal','tia','tor','tun','ula','ven','via','wald','wick','zia'];
+function generateProvName(x,y,terrain){
+  const i=(x*7+y*13)%PROV_NAMES_PREFIXES.length;
+  const j=(x*11+y*17+3)%PROV_NAMES_SUFFIXES.length;
+  return PROV_NAMES_PREFIXES[i]+PROV_NAMES_SUFFIXES[j];
+}
+
+function getProv(x,y){
+  if(x<0||y<0||x>=MAP_W||y>=MAP_H) return null;
+  return provinces[y*MAP_W+x];
+}
+function getProvNeighbors(p){
+  return [[p.x-1,p.y],[p.x+1,p.y],[p.x,p.y-1],[p.x,p.y+1]]
+    .map(([x,y])=>getProv(x,y)).filter(n=>n&&n.terrain!=='ocean');
+}
+
+// ---- NATION CREATION ----
+function createNation(cfg, isPlayer=false){
+  const govBonuses={
+    monarchy:{military:1.2,trade:1,research:1,stability:1},
+    republic:{military:1,trade:1.2,research:1.1,stability:1.05},
+    theocracy:{military:1.1,trade:0.9,research:1,stability:1.3},
+    tribal:{military:1.15,trade:0.85,research:0.9,stability:0.9,expand:1.3},
+    empire:{military:1.15,trade:1.15,research:1.15,stability:1.15}
+  };
+  const traitBonuses={
+    military:{militaryBonus:0.25,incomeBonus:0.1},
+    trader:{incomeBonus:0.3,diplomacyBonus:0.2},
+    scholar:{researchBonus:0.4,techBonus:0.15},
+    expansionist:{expandBonus:0.5,assimBonus:0.2},
+  };
+  const n={
+    id: nations.length,
+    name: cfg.name,
+    color: cfg.color,
+    gov: cfg.gov || 'monarchy',
+    trait: cfg.trait || 'military',
+    title: cfg.title || 'Kral',
+    gold: isPlayer?200:100+Math.random()*100,
+    food: 100,
+    research: 0,
+    researchPerTurn: 5,
+    stability: 100,
+    provinces: [],
+    units: [],
+    techs: [],
+    relations: {}, // nationId -> -100..100
+    atWar: [],
+    alliances: [],
+    vassals: [],
+    eliminated: false,
+    isPlayer,
+    govBonus: govBonuses[cfg.gov||'monarchy'],
+    traitBonus: traitBonuses[cfg.trait||'military'],
+    general: false,
+    generalBonus: 0,
+  };
+  nations.push(n);
+  return n;
+}
+
+function seedNation(nation, startX, startY, size=4){
+  for(let dy=-size;dy<=size;dy++) for(let dx=-size;dx<=size;dx++){
+    if(Math.abs(dx)+Math.abs(dy)>size) continue;
+    const p=getProv(startX+dx,startY+dy);
+    if(!p||p.terrain==='ocean'||p.owner>=0) continue;
+    claimProv(nation,p);
+  }
+  // Spawn starting army
+  const center=getProv(startX,startY);
+  if(center&&center.owner===nation.id) spawnUnit(nation,center,8);
+}
+
+function claimProv(nation,prov){
+  if(prov.owner>=0&&prov.owner!==nation.id){
+    const prev=nations[prov.owner];
+    if(prev) prev.provinces=prev.provinces.filter(p=>p!==prov);
+  }
+  prov.owner=nation.id;
+  if(!nation.provinces.includes(prov)) nation.provinces.push(prov);
+}
+
+function spawnUnit(nation,prov,size=5){
+  if(prov.unit){prov.unit.size+=Math.floor(size/2);return prov.unit;}
+  const u={id:Math.random(),nation,prov,size,maxSize:30,morale:100,moved:false,
+    attack:10*(1+(nation.traitBonus.militaryBonus||0))*(nation.govBonus.military||1),
+    defense:8,experience:0};
+  prov.unit=u;
+  nation.units.push(u);
+  return u;
+}
+
+// ---- ECONOMY ----
+function calcIncome(nation){
+  let gold=0,food=0;
+  const tb=nation.traitBonus, gb=nation.govBonus;
+  nation.provinces.forEach(p=>{
+    let inc=p.baseIncome*p.development;
+    let fd=p.food*p.development;
+    if(nation.techs.includes('trade')) inc*=1.3;
+    if(nation.techs.includes('agriculture')) fd*=1.4;
+    if(nation.techs.includes('taxation')) inc*=1.25;
+    inc*=(gb.trade||1)*(1+(tb.incomeBonus||0));
+    gold+=inc; food+=fd;
+  });
+  gold+=nation.units.length*(-1); // upkeep
+  return {gold:Math.floor(gold),food:Math.floor(food)};
+}
+
+// ---- RESEARCH ----
+function researchTech(nation,techId){
+  const tech=TECHS.find(t=>t.id===techId);
+  if(!tech||tech.researched) return false;
+  if(tech.requires.some(r=>!nation.techs.includes(r))) return false;
+  if(nation.research<tech.cost) return false;
+  nation.research-=tech.cost;
+  nation.techs.push(techId);
+  // Mark
+  TECHS.find(t=>t.id===techId).researched=true;
+  applyTech(nation,techId);
+  return true;
+}
+
+function applyTech(nation,techId){
+  if(techId==='cavalry'){nation.units.forEach(u=>{u.attack*=1.15;});}
+  if(techId==='iron'){nation.units.forEach(u=>{u.attack*=1.2;});}
+  if(techId==='fortification'){nation.provinces.forEach(p=>{p.maxFort+=2;});}
+  if(techId==='gunpowder'){nation.units.forEach(u=>{u.attack*=1.4;});}
+}
+
+// ---- COMBAT ----
+function combat(attNation, attUnit, defProv){
+  const defNation=nations[defProv.owner];
+  const defUnit=defProv.unit;
+  let atkStr=attUnit.size*attUnit.attack*(attUnit.morale/100)*(0.85+Math.random()*0.3);
+  let defStr=0;
+  if(defUnit) defStr=defUnit.size*defUnit.defense*(defUnit.morale/100)*(0.85+Math.random()*0.3);
+  defStr+=TERRAIN_DEF[defProv.terrain].fort*10;
+  defStr+=defProv.fort*15;
+  if(defProv.fortBuilt) defStr*=1.5;
+  if(attNation.techs.includes('siege')) defStr*=0.6;
+  if(attNation.general) atkStr*=(1+attNation.generalBonus);
+  const atkWins=atkStr>defStr;
+  const atkLoss=Math.max(1,Math.floor(defStr*0.12));
+  const defLoss=defUnit?Math.max(1,Math.floor(atkStr*0.1)):0;
+  attUnit.size=Math.max(0,attUnit.size-atkLoss);
+  attUnit.morale=Math.max(20,attUnit.morale-(atkWins?5:20));
+  attUnit.experience=Math.min(100,attUnit.experience+10);
+  if(defUnit){defUnit.size=Math.max(0,defUnit.size-defLoss);defUnit.morale=Math.max(20,defUnit.morale-(atkWins?20:5));}
+  if(atkWins){
+    if(defUnit&&defUnit.size<=0){defProv.unit=null;defNation&&(defNation.units=defNation.units.filter(u=>u!==defUnit));}
+    else if(defUnit) defUnit.moved=true;
+    const prev=defProv.owner;
+    claimProv(attNation,defProv);
+    // Move attacker
+    attUnit.prov.unit=null;
+    defProv.unit=attUnit;
+    attUnit.prov=defProv;
+    attUnit.moved=true;
+    addLog(`⚔ ${attNation.name} → ${defProv.name} fethetti! (${defNation?defNation.name:'Boş'})`, 'war');
+    addAnim(defProv.x,defProv.y,'capture',attNation.color);
+    if(defNation) checkElimination(defNation);
+  } else {
+    attUnit.moved=true;
+    addLog(`🛡 ${defNation?defNation.name:'Savunucu'} ${defProv.name}'de saldırıyı püskürttü!`,'war');
+    addAnim(defProv.x,defProv.y,'repel','#e74c3c');
+  }
+  if(attUnit.size<=0){attUnit.prov.unit=null;attNation.units=attNation.units.filter(u=>u!==attUnit);}
+  checkElimination(attNation);
+}
+
+function checkElimination(nation){
+  if(nation.provinces.length===0&&nation.units.length===0){
+    nation.eliminated=true;
+    addLog(`☠ ${nation.name} tarihe karıştı!`,'war');
+  }
+}
+
+// ---- AI LOGIC ----
+function aiTurn(nation){
+  if(nation.eliminated||nation.isPlayer) return;
+  const {gold,food}=calcIncome(nation);
+  nation.gold+=gold; nation.food+=food;
+  nation.research+=nation.researchPerTurn;
+
+  // Recruit if needed
+  if(nation.gold>=30&&nation.units.length<Math.floor(nation.provinces.length/3)+2){
+    const p=nation.provinces[Math.floor(Math.random()*nation.provinces.length)];
+    if(p&&!p.unit){spawnUnit(nation,p,3+Math.floor(Math.random()*4));nation.gold-=30;}
+  }
+  // Auto research
+  const canResearch=TECHS.filter(t=>!nation.techs.includes(t.id)&&t.requires.every(r=>nation.techs.includes(r))&&nation.research>=t.cost);
+  if(canResearch.length>0) researchTech(nation,canResearch[0].id);
+
+  // Move & attack
+  const myUnits=[...nation.units].filter(u=>!u.moved);
+  myUnits.forEach(u=>{
+    if(u.morale<30){u.morale=Math.min(100,u.morale+20);u.moved=true;return;}
+    const neighbors=getProvNeighbors(u.prov);
+    // Find targets
+    const enemies=neighbors.filter(p=>p.owner>=0&&p.owner!==nation.id&&
+      !nation.alliances.includes(nations[p.owner]?.name));
+    const empty=neighbors.filter(p=>p.owner===-1&&p.terrain!=='ocean');
+    if(enemies.length>0&&Math.random()<0.6){
+      const target=enemies[Math.floor(Math.random()*enemies.length)];
+      combat(nation,u,target);
+    } else if(empty.length>0){
+      const target=empty[Math.floor(Math.random()*empty.length)];
+      claimProv(nation,target);
+      u.prov.unit=null;
+      target.unit=u;
+      u.prov=target;
+      u.moved=true;
+    }
+  });
+
+  // Diplomacy
+  Object.keys(nation.relations).forEach(id=>{
+    nation.relations[id]=Math.max(-100,Math.min(100,nation.relations[id]+0.2));
+  });
+}
+
+// ---- ANIMATIONS ----
+function addAnim(px,py,type,color){
+  animQueue.push({px,py,type,color,life:60});
+  requestAnimationFrame(renderAnim);
+}
+function renderAnim(){
+  uctx.clearRect(0,0,W,H);
+  animQueue=animQueue.filter(a=>a.life>0);
+  animQueue.forEach(a=>{
+    const {sx,sy}=provToScreen(a.px,a.py);
+    const pw=PROV_W_PX()*cameraZ, ph=PROV_H_PX()*cameraZ;
+    const prog=1-a.life/60;
+    uctx.globalAlpha=Math.max(0,1-prog*1.2);
+    if(a.type==='capture'){
+      uctx.strokeStyle=a.color;uctx.lineWidth=3;
+      uctx.beginPath();uctx.arc(sx+pw/2,sy+ph/2,prog*(pw)*1.5,0,Math.PI*2);uctx.stroke();
+    } else if(a.type==='repel'){
+      uctx.fillStyle=a.color;uctx.font=`${Math.floor(ph)}px serif`;
+      uctx.textAlign='center';uctx.fillText('🛡',sx+pw/2,sy-prog*ph*2);
+    }
+    uctx.globalAlpha=1;
+    a.life--;
+  });
+  if(animQueue.length>0) requestAnimationFrame(renderAnim);
+}
+
+// ---- CAMERA ----
+function provToScreen(px,py){
+  return {sx:(px*PROV_W_PX()-cameraX)*cameraZ,sy:(py*PROV_H_PX()-cameraY)*cameraZ};
+}
+function screenToProv(sx,sy){
+  const wx=sx/cameraZ+cameraX, wy=sy/cameraZ+cameraY;
+  return {px:Math.floor(wx/PROV_W_PX()),py:Math.floor(wy/PROV_H_PX())};
+}
+
+// ---- RENDER ----
+function renderMap(){
+  mctx.clearRect(0,0,W,H);
+  const pw=PROV_W_PX()*cameraZ, ph=PROV_H_PX()*cameraZ;
+  const startX=Math.floor(cameraX/PROV_W_PX()), startY=Math.floor(cameraY/PROV_H_PX());
+  const endX=Math.min(MAP_W,startX+Math.ceil(W/(pw))+2);
+  const endY=Math.min(MAP_H,startY+Math.ceil(H/(ph))+2);
+
+  for(let y=startY;y<endY;y++) for(let x=startX;x<endX;x++){
+    const p=getProv(x,y); if(!p) continue;
+    const {sx,sy}=provToScreen(x,y);
+    const td=TERRAIN_DEF[p.terrain];
+    let col=td.color;
+    if(p.owner>=0){
+      const n=nations[p.owner];
+      col=blendHex(td.dark,n.color,0.55);
+    }
+    if(selectedProv&&selectedProv.x===x&&selectedProv.y===y) col=lightenHex(col,0.3);
+    mctx.fillStyle=col;
+    mctx.fillRect(Math.floor(sx),Math.floor(sy),Math.ceil(pw)+1,Math.ceil(ph)+1);
+    // Border lines
+    if(p.owner>=0){
+      const right=getProv(x+1,y), down=getProv(x,y+1);
+      if(right&&right.owner!==p.owner){
+        mctx.fillStyle='rgba(0,0,0,0.4)';
+        mctx.fillRect(Math.floor(sx+pw)-1,Math.floor(sy),2,Math.ceil(ph)+1);
+      }
+      if(down&&down.owner!==p.owner){
+        mctx.fillStyle='rgba(0,0,0,0.4)';
+        mctx.fillRect(Math.floor(sx),Math.floor(sy+ph)-1,Math.ceil(pw)+1,2);
+      }
+    }
+    // Fort
+    if(p.fortBuilt&&pw>8){
+      mctx.fillStyle='rgba(255,255,255,0.5)';
+      mctx.fillRect(sx+pw*0.7,sy+ph*0.1,pw*0.2,ph*0.2);
+    }
+    // Unit
+    if(p.unit&&pw>5){
+      const u=p.unit; const n=u.nation;
+      const cx=sx+pw/2, cy=sy+ph/2;
+      const r=Math.max(3,Math.min(pw*0.42,ph*0.42));
+      mctx.beginPath();mctx.arc(cx+1,cy+1,r,0,Math.PI*2);mctx.fillStyle='rgba(0,0,0,0.4)';mctx.fill();
+      mctx.beginPath();mctx.arc(cx,cy,r,0,Math.PI*2);mctx.fillStyle=n.color;mctx.fill();
+      mctx.beginPath();mctx.arc(cx,cy,r,0,Math.PI*2);
+      mctx.strokeStyle=selectedUnit&&selectedUnit===u?'#fff':'rgba(0,0,0,0.5)';
+      mctx.lineWidth=selectedUnit&&selectedUnit===u?2:0.8;mctx.stroke();
+      if(pw>12){
+        mctx.fillStyle='#fff';mctx.font=`bold ${Math.min(11,r*1.2)}px Cinzel,serif`;
+        mctx.textAlign='center';mctx.textBaseline='middle';
+        mctx.fillText(u.size,cx,cy);
+      }
+      // Morale bar
+      if(pw>14){
+        mctx.fillStyle='rgba(0,0,0,0.4)';mctx.fillRect(sx+1,sy+ph-4,pw-2,3);
+        mctx.fillStyle=u.morale>60?'#2ecc71':u.morale>30?'#f39c12':'#e74c3c';
+        mctx.fillRect(sx+1,sy+ph-4,(pw-2)*(u.morale/100),3);
+      }
+    }
+  }
+  // Selected province highlight
+  if(selectedProv){
+    const {sx,sy}=provToScreen(selectedProv.x,selectedProv.y);
+    mctx.strokeStyle='#fff'; mctx.lineWidth=2;
+    mctx.strokeRect(sx+1,sy+1,pw-2,ph-2);
+  }
+  // Reachable highlights
+  if(selectedUnit&&currentMode==='move'){
+    const reach=getReachable(selectedUnit,3);
+    reach.forEach(p=>{
+      const {sx,sy}=provToScreen(p.x,p.y);
+      mctx.fillStyle='rgba(255,255,100,0.15)';
+      mctx.fillRect(sx,sy,pw,ph);
+      mctx.strokeStyle='rgba(255,255,100,0.4)';mctx.lineWidth=0.8;
+      mctx.strokeRect(sx,sy,pw,ph);
+    });
+  }
+  // Attack range
+  if(selectedUnit&&currentMode==='attack'){
+    const targets=getAttackTargets(selectedUnit);
+    targets.forEach(p=>{
+      const {sx,sy}=provToScreen(p.x,p.y);
+      mctx.fillStyle='rgba(231,76,60,0.2)';
+      mctx.fillRect(sx,sy,pw,ph);
+      mctx.strokeStyle='rgba(231,76,60,0.6)';mctx.lineWidth=0.8;
+      mctx.strokeRect(sx,sy,pw,ph);
+    });
+  }
+  renderMinimap();
+}
+
+function renderMinimap(){
+  const mw=140,mh=90;
+  const sx=mw/MAP_W, sy=mh/MAP_H;
+  mmctx.clearRect(0,0,mw,mh);
+  for(let y=0;y<MAP_H;y++) for(let x=0;x<MAP_W;x++){
+    const p=getProv(x,y); if(!p) continue;
+    const td=TERRAIN_DEF[p.terrain];
+    mmctx.fillStyle=p.owner>=0?nations[p.owner].color:td.color;
+    mmctx.fillRect(x*sx,y*sy,sx+0.5,sy+0.5);
+  }
+  // Viewport
+  const vx=(cameraX/PROV_W_PX())*sx, vy=(cameraY/PROV_H_PX())*sy;
+  const vw=(W/PROV_W_PX()/cameraZ)*sx, vh=(H/PROV_H_PX()/cameraZ)*sy;
+  mmctx.strokeStyle='rgba(255,255,255,0.8)';mmctx.lineWidth=1;
+  mmctx.strokeRect(vx,vy,vw,vh);
+}
+
+// ---- MOVEMENT/REACH ----
+function getReachable(unit,maxMoves){
+  const visited=new Map();
+  const q=[{p:unit.prov,cost:0}];
+  visited.set(unit.prov,0);
+  const res=[];
+  while(q.length){
+    const {p,cost}=q.shift();
+    if(cost>0&&p.owner===playerNation.id) res.push(p);
+    getProvNeighbors(p).forEach(nb=>{
+      const mc=TERRAIN_DEF[nb.terrain].move;
+      const nc=cost+mc;
+      if(nc>maxMoves) return;
+      if(visited.has(nb)&&visited.get(nb)<=nc) return;
+      if(nb.owner>=0&&nb.owner!==playerNation.id) return; // can't move through enemies
+      visited.set(nb,nc);
+      q.push({p:nb,cost:nc});
+    });
+  }
+  return res;
+}
+
+function getAttackTargets(unit){
+  return getProvNeighbors(unit.prov).filter(p=>p.owner>=0&&p.owner!==playerNation.id);
+}
+
+// ---- TURN SYSTEM ----
+function endTurn(){
+  if(!gameStarted) return;
+  // Player income
+  const {gold,food}=calcIncome(playerNation);
+  playerNation.gold+=gold; playerNation.food+=food;
+  playerNation.research+=playerNation.researchPerTurn;
+  if(playerNation.techs.includes('diplomacy')){
+    Object.keys(playerNation.relations).forEach(id=>{
+      playerNation.relations[id]=Math.min(100,playerNation.relations[id]+2);
+    });
+  }
+  addLog(`💰 Gelir: +${gold}🪙 +${food}🌾 +${Math.floor(playerNation.researchPerTurn)}📜`,'economy');
+
+  // Random event (10% chance)
+  if(Math.random()<0.10) triggerEvent();
+
+  // AI turns
+  nations.forEach(n=>{ if(!n.isPlayer&&!n.eliminated) aiTurn(n); });
+
+  // Reset units
+  provinces.forEach(p=>{ if(p.unit) p.unit.moved=false; });
+  selectedUnit=null; currentMode='select';
+
+  turnNum++; year+=5;
+  updateEra();
+  checkVictory();
+  renderMap();
+  updateUI();
+  updateTechList();
+  updateNationsList();
+  selectedProv&&updateSelPanel(selectedProv);
+  document.getElementById('footer-mode').textContent='SEÇİM MODU';
+}
+
+function updateEra(){
+  let era='Klasik Çağ';
+  if(year>1000) era='Ortaçağ';
+  if(year>1300) era='Geç Ortaçağ';
+  if(year>1450) era='Yeniçağ';
+  if(year>1600) era='Sömürgecilik Çağı';
+  document.getElementById('h-era-tag').textContent=era;
+}
+
+function triggerEvent(){
+  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  if(playerNation.provinces.length===0) return;
+  const p=playerNation.provinces[Math.floor(Math.random()*playerNation.provinces.length)];
+  let msg='';
+  switch(ev.effect){
+    case 'plague': p.population=Math.max(50,p.population-100);p.stability-=20;msg=`${p.name}'de veba! Nüfus azaldı.`;break;
+    case 'gold_bonus': playerNation.gold+=150;msg=`${p.name}'de altın madeni! +150 🪙`;break;
+    case 'rebellion': p.rebellion=true;msg=`${p.name}'de isyan çıktı! Ordu gönderin.`;break;
+    case 'food_bonus': playerNation.food+=200;msg='Bol hasat! +200 🌾';break;
+    case 'gold_income': playerNation.gold+=80;msg='Paralı asker geliri: +80 🪙';break;
+    case 'food_penalty': playerNation.food=Math.max(0,playerNation.food-100);msg='Kıtlık! -100 🌾';break;
+    case 'general': playerNation.general=true;playerNation.generalBonus=0.3;msg='Büyük Komutan yetişti! +30% saldırı';break;
+    case 'alliance': break;
+  }
+  if(msg) showModal(ev.title,'🎲 Olay: '+msg,[{label:'Tamam',fn:()=>{}}]);
+  addLog(`🎲 Olay: ${ev.title} — ${msg}`,'event');
+}
+
+function checkVictory(){
+  const playerProv=playerNation.provinces.length;
+  const total=provinces.filter(p=>p.terrain!=='ocean').length;
+  const alive=nations.filter(n=>!n.eliminated&&!n.isPlayer).length;
+  if(playerNation.eliminated){
+    document.getElementById('gameover').style.display='flex';
+    document.getElementById('go-title').textContent='YENİLDİNİZ';
+    document.getElementById('go-title').style.color='#e74c3c';
+    document.getElementById('go-msg').textContent=`${playerNation.name} tarihin derinliklerinde yok oldu...`;
+  } else if(alive===0||playerProv/total>0.65){
+    document.getElementById('gameover').style.display='flex';
+    document.getElementById('go-title').textContent='ZAFER!';
+    document.getElementById('go-msg').textContent=`${playerNation.name} ${year} yılında dünyaya hükmediyor! ${turnNum} turda zafer.`;
+  }
+}
+
+// ---- DIPLOMACY ----
+function declareWar(targetNation){
+  if(playerNation.atWar.includes(targetNation.id)) return;
+  playerNation.atWar.push(targetNation.id);
+  targetNation.atWar.push(playerNation.id);
+  playerNation.relations[targetNation.id]=-80;
+  targetNation.relations[playerNation.id]=-80;
+  addLog(`⚔ ${playerNation.name} → ${targetNation.name}'e savaş ilan etti!`,'war');
+}
+
+function proposePeace(targetNation){
+  playerNation.atWar=playerNation.atWar.filter(i=>i!==targetNation.id);
+  targetNation.atWar=targetNation.atWar.filter(i=>i!==playerNation.id);
+  playerNation.relations[targetNation.id]=Math.min(20,(playerNation.relations[targetNation.id]||0)+40);
+  addLog(`🕊 ${playerNation.name} ve ${targetNation.name} arasında barış kuruldu.`,'peace');
+}
+
+function proposeAlliance(targetNation){
+  if(playerNation.gold<50) return;
+  playerNation.alliances.push(targetNation.name);
+  targetNation.alliances.push(playerNation.name);
+  playerNation.gold-=50;
+  playerNation.relations[targetNation.id]=60;
+  addLog(`🤝 ${playerNation.name} — ${targetNation.name} ittifakı kuruldu!`,'peace');
+}
+
+// ---- UI ----
+function updateUI(){
+  if(!playerNation) return;
+  document.getElementById('h-nation-name').textContent=playerNation.name;
+  document.getElementById('h-nation-name').style.color=playerNation.color;
+  document.getElementById('h-gold').textContent=Math.floor(playerNation.gold);
+  document.getElementById('h-mil').textContent=playerNation.units.reduce((s,u)=>s+u.size,0);
+  document.getElementById('h-food').textContent=Math.floor(playerNation.food);
+  document.getElementById('h-research').textContent=Math.floor(playerNation.research);
+  document.getElementById('h-stab').textContent=Math.floor(playerNation.stability)+'%';
+  document.getElementById('h-provinces').textContent=playerNation.provinces.length;
+  document.getElementById('h-year').textContent=year;
+  document.getElementById('h-turnnum').textContent=turnNum;
+}
+
+function updateNationsList(){
+  const el=document.getElementById('nations-list');
+  el.innerHTML='';
+  nations.filter(n=>!n.eliminated).sort((a,b)=>b.provinces.length-a.provinces.length).slice(0,12).forEach(n=>{
+    const rel=Math.floor(playerNation.relations[n.id]||0);
+    const relCol=rel>30?'#2ecc71':rel<-30?'#e74c3c':'#8a94a8';
+    const d=document.createElement('div');
+    d.className='nation-row';
+    d.innerHTML=`<div class="nation-dot" style="background:${n.color}"></div>
+    <div class="nation-info"><div class="nname">${n.name}</div>
+    <div class="nstats">${n.provinces.length} eyalet · ${n.units.reduce((s,u)=>s+u.size,0)} asker</div></div>
+    <span class="nation-rel" style="color:${relCol}">${n.isPlayer?'Sen':rel>0?'+'+rel:rel}</span>`;
+    d.onclick=()=>openNationPanel(n);
+    el.appendChild(d);
+  });
+}
+
+function updateTechList(){
+  const el=document.getElementById('tech-list');
+  el.innerHTML='';
+  TECHS.forEach(t=>{
+    const researched=playerNation.techs.includes(t.id);
+    const canAfford=playerNation.research>=t.cost;
+    const reqsMet=t.requires.every(r=>playerNation.techs.includes(r));
+    const d=document.createElement('div');
+    d.className='tech-item'+(researched?' researched':'');
+    d.innerHTML=`<div><div class="tname">${t.name}</div><div class="tdesc">${t.desc}</div></div>
+    <div class="tcost">${researched?'✓':t.cost+'📜'}</div>`;
+    if(!researched&&canAfford&&reqsMet){
+      d.style.borderColor='var(--gold)';
+      d.onclick=()=>{researchTech(playerNation,t.id);updateTechList();updateUI();addLog(`📜 ${t.name} araştırıldı!`,'economy');};
+    } else if(!researched&&!reqsMet){
+      d.style.opacity='0.4';
+    }
+    el.appendChild(d);
+  });
+}
+
+function updateSelPanel(p){
+  const el=document.getElementById('sel-body');
+  const owner=p.owner>=0?nations[p.owner]:null;
+  document.getElementById('sel-title').textContent=p.name;
+  document.getElementById('sel-title').style.color=owner?owner.color:'var(--text2)';
+  el.innerHTML=`
+    <div style="color:var(--gold);font-family:Cinzel,serif;font-size:10px;margin-bottom:4px">${TERRAIN_DEF[p.terrain].name}</div>
+    <div>Sahip: <span style="color:${owner?owner.color:'var(--text3)'}">${owner?owner.name:'Sahipsiz'}</span></div>
+    <div>Nüfus: ${p.population} · Gelişme: Sv.${p.development}</div>
+    <div>Gelir: ${p.baseIncome*p.development}🪙 · Yiyecek: ${p.food*p.development}🌾</div>
+    <div>Kale: ${p.fort}/${p.maxFort}${p.fortBuilt?' 🏰':''}</div>
+    ${p.rebellion?'<div style="color:var(--red3)">⚠ İSYAN VAR!</div>':''}
+    ${p.unit?`<div style="margin-top:6px;color:var(--gold2)">Birlik: ${p.unit.size} asker (${p.unit.nation.name})</div>
+    <div>Moral: ${Math.floor(p.unit.morale)}% · Deneyim: ${Math.floor(p.unit.experience)}</div>
+    <div class="stat-bar"><div class="stat-bar-fill" style="width:${p.unit.morale}%;background:${p.unit.morale>60?'#2ecc71':p.unit.morale>30?'#f39c12':'#e74c3c'}"></div></div>`:''}`;
+  updateActionBtns(p);
+}
+
+function updateActionBtns(p){
+  const el=document.getElementById('action-btns');
+  el.innerHTML='';
+  if(!playerNation) return;
+  const isOwn=p.owner===playerNation.id;
+  const isNeutral=p.owner===-1;
+  const isEnemy=p.owner>=0&&p.owner!==playerNation.id;
+  const owner=p.owner>=0?nations[p.owner]:null;
+  const myUnit=p.unit&&p.unit.nation===playerNation?p.unit:null;
+  const adjUnit=getProvNeighbors(p).find(nb=>nb.unit&&nb.unit.nation===playerNation&&!nb.unit.moved);
+
+  if(myUnit&&!myUnit.moved){
+    addBtn(el,'⚔ Birliği Seç / Taşı','','',()=>{selectedUnit=myUnit;currentMode='move';document.getElementById('footer-mode').textContent='HAREKET MODU';renderMap();});
+    addBtn(el,'🗡 Saldır','danger','',()=>{selectedUnit=myUnit;currentMode='attack';document.getElementById('footer-mode').textContent='SALDIRI MODU';renderMap();});
+  }
+  if(adjUnit){
+    addBtn(el,'⚔ Komşudan Saldır','danger','',()=>{selectedUnit=adjUnit;currentMode='attack';renderMap();});
+  }
+  if(isOwn){
+    addBtn(el,'⚔ Asker Al','','+3 (30🪙)',()=>{
+      if(playerNation.gold<30){addLog('Yetersiz altın!','');return;}
+      spawnUnit(playerNation,p,3); playerNation.gold-=30; updateUI(); renderMap(); updateSelPanel(p);
+      addLog(`⚔ ${p.name}'de 3 yeni asker toplandı.`,'economy');
+    });
+    if(!p.fortBuilt&&p.fort<p.maxFort&&playerNation.gold>=60){
+      addBtn(el,'🏰 Kale İnşa Et','','60🪙',()=>{
+        playerNation.gold-=60; p.fortBuilt=true; p.fort=Math.min(p.maxFort,p.fort+2);
+        updateUI();renderMap();updateSelPanel(p);addLog(`🏰 ${p.name}'de kale inşa edildi!`,'economy');
+      });
+    }
+    if(p.rebellion){
+      addBtn(el,'👊 İsyanı Bastır','','40🪙',()=>{
+        if(playerNation.gold<40) return;
+        playerNation.gold-=40;p.rebellion=false;p.stability=80;
+        updateUI();renderMap();updateSelPanel(p);addLog(`✅ ${p.name}'deki isyan bastırıldı.`,'peace');
+      });
+    }
+  }
+  if(isEnemy&&owner){
+    const atWar=playerNation.atWar.includes(owner.id);
+    if(!atWar) addBtn(el,'⚔ Savaş İlan Et','danger','',()=>{
+      showModal('Savaş İlanı',`${owner.name}'e savaş mı ilan ediyorsunuz? Bu ciddi bir adım!`,[
+        {label:'İptal',fn:()=>{}},{label:'SAVAŞ İLAN ET',fn:()=>{declareWar(owner);updateNationsList();}}
+      ]);
+    });
+    else addBtn(el,'🕊 Barış Teklif Et','','',()=>{proposePeace(owner);updateNationsList();updateSelPanel(p);});
+  }
+  if(isEnemy&&owner&&!playerNation.alliances.includes(owner.name)){
+    const rel=playerNation.relations[owner.id]||0;
+    if(rel>20) addBtn(el,'🤝 İttifak Teklif Et','','50🪙',()=>{
+      if(playerNation.gold<50){addLog('İttifak için 50 altın gerekli!','');return;}
+      proposeAlliance(owner);updateNationsList();
+    });
+  }
+}
+
+function addBtn(el,label,cls,cost,fn){
+  const b=document.createElement('button');
+  b.className='action-btn '+(cls||'');
+  b.innerHTML=label+(cost?`<span class="cost-tag">${cost}</span>`:'');
+  b.onclick=fn;
+  el.appendChild(b);
+}
+
+function openNationPanel(n){
+  if(n.isPlayer) return;
+  const rel=Math.floor(playerNation.relations[n.id]||0);
+  const atWar=playerNation.atWar.includes(n.id);
+  const alliances=playerNation.alliances.includes(n.name);
+  showModal(n.name,
+    `🏛 Hükümet: ${n.gov}\n🎖 Özellik: ${n.trait}\n🗺 Eyaletler: ${n.provinces.length}\n⚔ Askerler: ${n.units.reduce((s,u)=>s+u.size,0)}\n💰 Hazine: ${Math.floor(n.gold)}\n🤝 İlişki: ${rel}\n${atWar?'⚔ Savaş Halinde':''} ${alliances?'🤝 Müttefik':''}`,
+    [
+      {label:'Kapat',fn:()=>{}},
+      ...(atWar?[{label:'🕊 Barış',fn:()=>{proposePeace(n);updateNationsList();}}]:[{label:'⚔ Savaş İlan Et',fn:()=>{declareWar(n);updateNationsList();}}]),
+      ...(!alliances&&rel>20?[{label:'🤝 İttifak (50🪙)',fn:()=>{proposeAlliance(n);updateNationsList();}}]:[]),
+    ]
+  );
+}
+
+function showModal(title,body,btns){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  const bel=document.getElementById('modal-btns');
+  bel.innerHTML='';
+  btns.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.textContent=b.label;
+    if(b.label.includes('İlan')||b.label.includes('War')) btn.className='primary';
+    btn.onclick=()=>{document.getElementById('modal-overlay').style.display='none';b.fn();};
+    bel.appendChild(btn);
+  });
+  document.getElementById('modal-overlay').style.display='flex';
+}
+document.getElementById('modal-overlay').onclick=e=>{if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').style.display='none';};
+
+// ---- LOG ----
+function addLog(msg,type=''){
+  const el=document.getElementById('log-area');
+  const d=document.createElement('div');
+  d.className='log-entry '+(type||'');
+  d.innerHTML=`<span class="log-year">${year}</span> ${msg}`;
+  el.insertBefore(d,el.firstChild);
+  while(el.children.length>50) el.removeChild(el.lastChild);
+}
+
+// ---- COLOR UTILS ----
+function blendHex(h1,h2,t){
+  const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  try{const [r1,g1,b1]=p(h1),[r2,g2,b2]=p(h2);
+  const r=Math.round(r1*(1-t)+r2*t),g=Math.round(g1*(1-t)+g2*t),b=Math.round(b1*(1-t)+b2*t);
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;}
+  catch(e){return h1;}
+}
+function lightenHex(h,t){return blendHex(h,'#ffffff',t);}
+
+// ---- CANVAS EVENTS ----
+MC.addEventListener('mousedown',e=>{
+  if(e.button===2){dragging=true;dragStart={x:e.clientX,y:e.clientY};camStart={x:cameraX,y:cameraY};return;}
+  const rect=MC.getBoundingClientRect();
+  const {px,py}=screenToProv(e.clientX-rect.left,e.clientY-rect.top);
+  const p=getProv(px,py); if(!p) return;
+
+  if(currentMode==='move'&&selectedUnit){
+    const reach=getReachable(selectedUnit,3);
+    if(reach.includes(p)){
+      selectedUnit.prov.unit=null;
+      p.unit=selectedUnit;
+      selectedUnit.prov=p;
+      selectedUnit.moved=true;
+      if(p.owner!==playerNation.id) claimProv(playerNation,p);
+      addLog(`🗺 Birlik ${p.name}'ye taşındı.`,'');
+      selectedUnit=null;currentMode='select';
+      document.getElementById('footer-mode').textContent='SEÇİM MODU';
+    } else {selectedUnit=null;currentMode='select';}
+    renderMap();selectedProv=p;updateSelPanel(p);return;
+  }
+  if(currentMode==='attack'&&selectedUnit){
+    const targets=getAttackTargets(selectedUnit);
+    if(targets.includes(p)){
+      const owner=p.owner>=0?nations[p.owner]:null;
+      if(owner&&!playerNation.atWar.includes(owner.id)){
+        showModal('Savaş İlanı Gerekli',`${owner.name}'e saldırmak için önce savaş ilan etmelisiniz!`,[
+          {label:'İptal',fn:()=>{}},
+          {label:'⚔ Savaş İlan Et ve Saldır',fn:()=>{declareWar(owner);combat(playerNation,selectedUnit,p);selectedUnit=null;currentMode='select';renderMap();updateUI();updateSelPanel(p);}}
+        ]);
+      } else {
+        combat(playerNation,selectedUnit,p);
+        selectedUnit=null;currentMode='select';
+        document.getElementById('footer-mode').textContent='SEÇİM MODU';
+        renderMap();updateUI();updateSelPanel(p);
+      }
+    } else {selectedUnit=null;currentMode='select';}
+    return;
+  }
+  selectedProv=p;
+  selectedUnit=null;
+  currentMode='select';
+  updateSelPanel(p);
+  renderMap();
+});
+
+MC.addEventListener('mousemove',e=>{
+  if(dragging&&e.buttons===2){
+    cameraX=camStart.x-(e.clientX-dragStart.x)/cameraZ;
+    cameraY=camStart.y-(e.clientY-dragStart.y)/cameraZ;
+    cameraX=Math.max(0,Math.min(MAP_W*PROV_W_PX()-W/cameraZ,cameraX));
+    cameraY=Math.max(0,Math.min(MAP_H*PROV_H_PX()-H/cameraZ,cameraY));
+    renderMap();return;
+  }
+  const rect=MC.getBoundingClientRect();
+  const {px,py}=screenToProv(e.clientX-rect.left,e.clientY-rect.top);
+  const p=getProv(px,py);
+  const tt=document.getElementById('tooltip');
+  if(!p||p.terrain==='ocean'){tt.style.display='none';return;}
+  const owner=p.owner>=0?nations[p.owner]:null;
+  tt.innerHTML=`<strong>${p.name}</strong><br>${TERRAIN_DEF[p.terrain].name} · ${owner?`<span style="color:${owner.color}">${owner.name}</span>`:'Sahipsiz'}<br>
+  Gelir: ${p.baseIncome*p.development}🪙 · Yiyecek: ${p.food*p.development}🌾<br>
+  Kale: ${p.fort}${p.fortBuilt?' 🏰':''}${p.rebellion?'<br><span style="color:#e74c3c">⚠ İSYAN!</span>':''}
+  ${p.unit?`<br>⚔ ${p.unit.nation.name}: ${p.unit.size} asker`:''}`;
+  tt.style.display='block';
+  tt.style.left=(e.clientX-rect.left+14)+'px';
+  tt.style.top=(e.clientY-rect.top-10)+'px';
+});
+MC.addEventListener('mouseleave',()=>{document.getElementById('tooltip').style.display='none';dragging=false;});
+MC.addEventListener('mouseup',()=>{dragging=false;});
+MC.addEventListener('contextmenu',e=>e.preventDefault());
+MC.addEventListener('wheel',e=>{
+  const factor=e.deltaY<0?1.15:0.87;
+  const rect=MC.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const wx=mx/cameraZ+cameraX, wy=my/cameraZ+cameraY;
+  cameraZ=Math.max(0.5,Math.min(6,cameraZ*factor));
+  cameraX=wx-mx/cameraZ;
+  cameraY=wy-my/cameraZ;
+  cameraX=Math.max(0,Math.min(MAP_W*PROV_W_PX()-W/cameraZ,cameraX));
+  cameraY=Math.max(0,Math.min(MAP_H*PROV_H_PX()-H/cameraZ,cameraY));
+  renderMap();
+});
+
+// ---- RESIZE ----
+function resize(){
+  const wrap=document.getElementById('map-wrap');
+  const rect=wrap.getBoundingClientRect();
+  W=rect.width; H=rect.height;
+  MC.width=UC.width=W; MC.height=UC.height=H;
+  renderMap();
+}
+window.addEventListener('resize',resize);
+
+// ---- SCREEN TRANSITIONS ----
+function showMenu(){
+  document.getElementById('screen-menu').style.display='flex';
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-game').style.display='none';
+}
+function showCreate(){
+  document.getElementById('screen-menu').style.display='none';
+  document.getElementById('screen-create').style.display='flex';
+  document.getElementById('screen-game').style.display='none';
+}
+
+// Color picker
+document.querySelectorAll('.color-swatch').forEach(s=>{
+  s.onclick=()=>{
+    document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('selected'));
+    s.classList.add('selected');
+    playerConfig.color=s.dataset.color;
+  };
+});
+// Trait picker
+document.querySelectorAll('.trait-card').forEach(c=>{
+  c.onclick=()=>{
+    document.querySelectorAll('.trait-card').forEach(x=>x.classList.remove('selected'));
+    c.classList.add('selected');
+    playerConfig.trait=c.dataset.trait;
+  };
+});
+
+function quickStart(){
+  playerConfig={name:'Osmanlı İmparatorluğu',color:'#c9a84c',gov:'empire',trait:'military',title:'Sultan',region:0};
+  startGame();
+}
+
+function startGame(){
+  playerConfig.name=document.getElementById('nc-name')?.value||playerConfig.name||'Yeni İmparatorluk';
+  if(!playerConfig.name.trim()) playerConfig.name='Yeni İmparatorluk';
+  playerConfig.title=document.getElementById('nc-title')?.value||playerConfig.title||'Sultan';
+  playerConfig.gov=document.getElementById('nc-gov')?.value?.split(' ')[0]||playerConfig.gov||'monarchy';
+  playerConfig.region=parseInt(document.getElementById('nc-region')?.value||'0')||0;
+
+  document.getElementById('screen-menu').style.display='none';
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-game').style.display='flex';
+
+  // Generate world
+  generateWorld();
+  nations=[];
+  TECHS.forEach(t=>t.researched=false);
+
+  // Create player
+  playerNation=createNation({...playerConfig},true);
+
+  // Create AI nations
+  AI_NATIONS.forEach(cfg=>createNation({...cfg}));
+
+  // Init relations
+  nations.forEach(n=>{
+    nations.forEach(m=>{
+      if(n.id!==m.id) n.relations[m.id]=Math.floor(Math.random()*40-20);
+    });
+  });
+
+  // Starting positions
+  const starts=[
+    [{x:75,y:40},{x:50,y:30},{x:50,y:25},{x:60,y:20},{x:42,y:28},{x:42,y:24},{x:35,y:18},{x:35,y:26},{x:35,y:22},{x:40,y:14},{x:60,y:22},{x:28,y:52},{x:62,y:62},{x:80,y:32},{x:36,y:26},{x:115,y:30},{x:132,y:40}],
+    [{x:40,y:25},{x:75,y:40},{x:50,y:25},{x:60,y:20},{x:42,y:28},{x:42,y:24},{x:35,y:18},{x:35,y:26},{x:35,y:22},{x:40,y:14},{x:60,y:22},{x:28,y:52},{x:62,y:62},{x:80,y:32},{x:36,y:26},{x:115,y:30}],
+    [{x:115,y:30},{x:50,y:30},{x:50,y:25},{x:60,y:20},{x:75,y:40},{x:42,y:24},{x:35,y:18},{x:35,y:26},{x:35,y:22},{x:40,y:14},{x:60,y:22},{x:28,y:52},{x:62,y:62},{x:80,y:32},{x:36,y:26},{x:132,y:40}],
+    [{x:28,y:52},{x:50,y:30},{x:50,y:25},{x:60,y:20},{x:75,y:40},{x:42,y:24},{x:35,y:18},{x:35,y:26},{x:35,y=22],[x:40,y:14},{x:60,y:22},{x:62,y:62},{x:80,y:32},{x:36,y:26},{x:115,y:30}],
+    [{x:60,y:16},{x:50,y:30},{x:50,y:25},{x:60,y:20},{x:75,y:40},{x:42,y:24},{x:35,y:18},{x:35,y:26},{x:42,y:28},{x:40,y:14},{x:60,y:22},{x:28,y:52},{x:62,y:62},{x:80,y:32},{x:36,y:26}],
+  ];
+  const playerStart=starts[playerConfig.region]||starts[0];
+  const ps=playerStart[0];
+  seedNation(playerNation,ps.x,ps.y,5);
+  nations.slice(1).forEach((n,i)=>{
+    const s=playerStart[i+1]||{x:Math.floor(Math.random()*140)+10,y:Math.floor(Math.random()*80)+10};
+    seedNation(n,s.x,s.y,4);
+  });
+
+  // Center camera on player capital
+  const capitalProv=playerNation.provinces[0]||{x:MAP_W/2,y:MAP_H/2};
+  cameraX=capitalProv.x*PROV_W_PX()-W/cameraZ/2;
+  cameraY=capitalProv.y*PROV_H_PX()-H/cameraZ/2;
+  cameraZ=2.5;
+
+  gameStarted=true;
+  resize();
+  renderMap();
+  updateUI();
+  updateNationsList();
+  updateTechList();
+  addLog(`🏛 ${playerNation.name} kuruldu! ${playerNation.provinces.length} eyaletle başlıyorsunuz.`,'system');
+  addLog(`💡 İpucu: Sağ tık ile haritayı kaydırın, tekerlek ile zoom yapın.`,'system');
+}
+
+showMenu();
+</script>
+</body>
+</html>
